@@ -26,5 +26,6 @@ public extension Model {
 		case gpt4o = "gpt-4o-transcribe-latest"
 		case gpt4oMini = "gpt-4o-mini-transcribe"
 		case gpt4oDiarize = "gpt-4o-transcribe-diarize"
+        case gpt4oTranscribe = "gpt-4o-transcribe"
 	}
 }
