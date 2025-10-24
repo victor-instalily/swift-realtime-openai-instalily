@@ -315,6 +315,17 @@ import MetaCodable
 
 		/// The tools available on the server.
 		public var tools: [Tool]
+
+		/// Creates a new `MCPListTools` instance.
+		///
+		/// - Parameter id: The unique ID of the list.
+		/// - Parameter server: The label of the MCP server.
+		/// - Parameter tools: The tools available on the server.
+		public init(id: String, server: String, tools: [Tool]) {
+			self.id = id
+			self.server = server
+			self.tools = tools
+		}
 	}
 
 	/// A message item in a Realtime conversation.

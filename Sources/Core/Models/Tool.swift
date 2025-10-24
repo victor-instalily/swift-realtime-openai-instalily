@@ -197,6 +197,52 @@ extension Tool.Choice: Codable {
 	}
 }
 
+extension Tool.MCP: Codable {
+	private enum CodingKeys: String, CodingKey {
+		case serverLabel = "server_label"
+		case serverUrl = "server_url"
+		case connectorId = "connector_id"
+		case authorization
+		case allowedTools = "allowed_tools"
+		case headers
+		case requireApproval = "require_approval"
+		case serverDescription = "server_description"
+	}
+
+	public init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+		
+		// Handle server_label with fallback
+		if let serverLabel = try container.decodeIfPresent(String.self, forKey: .serverLabel) {
+			self.label = serverLabel
+		} else {
+			// Fallback for missing server_label
+			self.label = "unknown_server"
+		}
+		
+		self.url = try container.decodeIfPresent(URL.self, forKey: .serverUrl)
+		self.connector = try container.decodeIfPresent(Connector.self, forKey: .connectorId)
+		self.authorization = try container.decodeIfPresent(String.self, forKey: .authorization)
+		self.allowedTools = try container.decodeIfPresent([String].self, forKey: .allowedTools)
+		self.headers = try container.decodeIfPresent([String: String].self, forKey: .headers)
+		self.requireApproval = try container.decodeIfPresent(RequireApproval.self, forKey: .requireApproval)
+		self.description = try container.decodeIfPresent(String.self, forKey: .serverDescription)
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		
+		try container.encode(label, forKey: .serverLabel)
+		try container.encodeIfPresent(url, forKey: .serverUrl)
+		try container.encodeIfPresent(connector, forKey: .connectorId)
+		try container.encodeIfPresent(authorization, forKey: .authorization)
+		try container.encodeIfPresent(allowedTools, forKey: .allowedTools)
+		try container.encodeIfPresent(headers, forKey: .headers)
+		try container.encodeIfPresent(requireApproval, forKey: .requireApproval)
+		try container.encodeIfPresent(description, forKey: .serverDescription)
+	}
+}
+
 extension Tool.MCP.RequireApproval: Codable {
 	static let never = Self.all(.never)
 	static let always = Self.all(.always)
@@ -233,8 +279,8 @@ extension Tool.MCP.RequireApproval: Codable {
 
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		self = try .granular(
-			always: container.decode(ToolList?.self, forKey: .always)?.tool_names,
-			never: container.decode(ToolList?.self, forKey: .never)?.tool_names
+			always: try container.decodeIfPresent(ToolList.self, forKey: .always)?.tool_names,
+			never: try container.decodeIfPresent(ToolList.self, forKey: .never)?.tool_names
 		)
 	}
 }
