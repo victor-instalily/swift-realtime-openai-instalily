@@ -482,21 +482,21 @@ extension Item.Message.Content: Codable {
 extension Item.MCPListTools: Codable {
 	private enum CodingKeys: String, CodingKey {
 		case id
-		case server_label = "server_label"
+		case serverLabel = "server_label"
 		case tools
 	}
 
 	public init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		id = try container.decode(String.self, forKey: .id)
-		server = try container.decode(String.self, forKey: .server_label)
+		server = try container.decode(String.self, forKey: .serverLabel)
 		tools = try container.decode([Tool].self, forKey: .tools)
 	}
 
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(id, forKey: .id)
-		try container.encode(server, forKey: .server_label)
+		try container.encode(server, forKey: .serverLabel)
 		try container.encode(tools, forKey: .tools)
 	}
 }
@@ -504,7 +504,7 @@ extension Item.MCPListTools: Codable {
 extension Item.MCPToolCall: Codable {
 	private enum CodingKeys: String, CodingKey {
 		case id
-		case server_label = "server_label"
+		case serverLabel = "server_label"
 		case name
 		case arguments
 		case output
@@ -515,7 +515,7 @@ extension Item.MCPToolCall: Codable {
 	public init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		id = try container.decode(String.self, forKey: .id)
-		server = try container.decode(String.self, forKey: .server_label)
+		server = try container.decode(String.self, forKey: .serverLabel)
 		tool = try container.decode(String.self, forKey: .name)
 		arguments = try container.decode(String.self, forKey: .arguments)
 		output = try container.decodeIfPresent(String.self, forKey: .output)
@@ -526,7 +526,7 @@ extension Item.MCPToolCall: Codable {
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(id, forKey: .id)
-		try container.encode(server, forKey: .server_label)
+		try container.encode(server, forKey: .serverLabel)
 		try container.encode(tool, forKey: .name)
 		try container.encode(arguments, forKey: .arguments)
 		try container.encodeIfPresent(output, forKey: .output)
@@ -538,7 +538,7 @@ extension Item.MCPToolCall: Codable {
 extension Item.MCPApprovalRequest: Codable {
 	private enum CodingKeys: String, CodingKey {
 		case id
-		case server_label = "server_label"
+		case serverLabel = "server_label"
 		case name
 		case arguments
 	}
@@ -546,7 +546,7 @@ extension Item.MCPApprovalRequest: Codable {
 	public init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		id = try container.decode(String.self, forKey: .id)
-		server = try container.decode(String.self, forKey: .server_label)
+		server = try container.decode(String.self, forKey: .serverLabel)
 		tool = try container.decode(String.self, forKey: .name)
 		arguments = try container.decode(String.self, forKey: .arguments)
 	}
@@ -554,7 +554,7 @@ extension Item.MCPApprovalRequest: Codable {
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(id, forKey: .id)
-		try container.encode(server, forKey: .server_label)
+		try container.encode(server, forKey: .serverLabel)
 		try container.encode(tool, forKey: .name)
 		try container.encode(arguments, forKey: .arguments)
 	}
