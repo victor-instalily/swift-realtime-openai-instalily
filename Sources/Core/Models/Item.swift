@@ -125,7 +125,7 @@ import MetaCodable
 	}
 
 	/// A Realtime item representing an invocation of a tool on an MCP server.
-	@Codable public struct MCPToolCall: Identifiable, Equatable, Hashable, Sendable {
+	public struct MCPToolCall: Identifiable, Equatable, Hashable, Sendable {
 		/// An error that occurred during the MCP call.
 		public struct Error: Equatable, Hashable, Codable, Sendable {
 			public var code: Int?
@@ -144,7 +144,6 @@ import MetaCodable
 		public var id: String
 
 		/// The label of the MCP server running the tool.
-		@CodedAt("server_label")
 		public var server: String
 
 		/// The name of the tool that was run.
@@ -184,12 +183,11 @@ import MetaCodable
 	}
 
 	/// A Realtime item requesting human approval of a tool invocation.
-	@Codable public struct MCPApprovalRequest: Identifiable, Equatable, Hashable, Sendable {
+	public struct MCPApprovalRequest: Identifiable, Equatable, Hashable, Sendable {
 		/// The unique ID of the approval request.
 		public var id: String
 
 		/// The label of the MCP server making the request.
-		@CodedAt("server_label")
 		public var server: String
 
 		/// The name of the tool to run.
@@ -214,7 +212,7 @@ import MetaCodable
 	}
 
 	/// A Realtime item responding to an MCP approval request.
-	@Codable public struct MCPApprovalResponse: Identifiable, Equatable, Hashable, Sendable {
+	public struct MCPApprovalResponse: Identifiable, Equatable, Hashable, Sendable {
 		/// The unique ID of the approval response.
 		public var id: String
 
@@ -241,7 +239,7 @@ import MetaCodable
 		}
 	}
 
-	@Codable public struct MCPListTools: Identifiable, Equatable, Hashable, Sendable {
+	public struct MCPListTools: Identifiable, Equatable, Hashable, Sendable {
 		public struct Tool: Equatable, Hashable, Codable, Sendable {
 			/// Additional annotations about the tool.
 			public struct Annotations: Equatable, Hashable, Codable, Sendable {
@@ -310,7 +308,6 @@ import MetaCodable
 		public var id: String
 
 		/// The label of the MCP server.
-		@CodedAt("server_label")
 		public var server: String
 
 		/// The tools available on the server.
@@ -479,5 +476,111 @@ extension Item.Message.Content: Codable {
 				try container.encode("input_audio", forKey: .type)
 				try container.encode(audio.transcript, forKey: .transcript)
 		}
+	}
+}
+
+extension Item.MCPListTools: Codable {
+	private enum CodingKeys: String, CodingKey {
+		case id
+		case server_label = "server_label"
+		case tools
+	}
+
+	public init(from decoder: any Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+		id = try container.decode(String.self, forKey: .id)
+		server = try container.decode(String.self, forKey: .server_label)
+		tools = try container.decode([Tool].self, forKey: .tools)
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		try container.encode(id, forKey: .id)
+		try container.encode(server, forKey: .server_label)
+		try container.encode(tools, forKey: .tools)
+	}
+}
+
+extension Item.MCPToolCall: Codable {
+	private enum CodingKeys: String, CodingKey {
+		case id
+		case server_label = "server_label"
+		case name
+		case arguments
+		case output
+		case error
+		case approvalRequestId
+	}
+
+	public init(from decoder: any Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+		id = try container.decode(String.self, forKey: .id)
+		server = try container.decode(String.self, forKey: .server_label)
+		tool = try container.decode(String.self, forKey: .name)
+		arguments = try container.decode(String.self, forKey: .arguments)
+		output = try container.decodeIfPresent(String.self, forKey: .output)
+		error = try container.decodeIfPresent(Error.self, forKey: .error)
+		approvalRequestId = try container.decodeIfPresent(String.self, forKey: .approvalRequestId)
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		try container.encode(id, forKey: .id)
+		try container.encode(server, forKey: .server_label)
+		try container.encode(tool, forKey: .name)
+		try container.encode(arguments, forKey: .arguments)
+		try container.encodeIfPresent(output, forKey: .output)
+		try container.encodeIfPresent(error, forKey: .error)
+		try container.encodeIfPresent(approvalRequestId, forKey: .approvalRequestId)
+	}
+}
+
+extension Item.MCPApprovalRequest: Codable {
+	private enum CodingKeys: String, CodingKey {
+		case id
+		case server_label = "server_label"
+		case name
+		case arguments
+	}
+
+	public init(from decoder: any Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+		id = try container.decode(String.self, forKey: .id)
+		server = try container.decode(String.self, forKey: .server_label)
+		tool = try container.decode(String.self, forKey: .name)
+		arguments = try container.decode(String.self, forKey: .arguments)
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		try container.encode(id, forKey: .id)
+		try container.encode(server, forKey: .server_label)
+		try container.encode(tool, forKey: .name)
+		try container.encode(arguments, forKey: .arguments)
+	}
+}
+
+extension Item.MCPApprovalResponse: Codable {
+	private enum CodingKeys: String, CodingKey {
+		case id
+		case approvalRequestId
+		case approve
+		case reason
+	}
+
+	public init(from decoder: any Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+		id = try container.decode(String.self, forKey: .id)
+		approvalRequestId = try container.decode(String.self, forKey: .approvalRequestId)
+		approve = try container.decode(Bool.self, forKey: .approve)
+		reason = try container.decodeIfPresent(String.self, forKey: .reason)
+	}
+
+	public func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		try container.encode(id, forKey: .id)
+		try container.encode(approvalRequestId, forKey: .approvalRequestId)
+		try container.encode(approve, forKey: .approve)
+		try container.encodeIfPresent(reason, forKey: .reason)
 	}
 }
