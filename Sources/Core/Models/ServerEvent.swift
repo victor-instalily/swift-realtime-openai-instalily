@@ -3,27 +3,50 @@ import MetaCodable
 
 public struct TranscriptionUsage: Equatable, Hashable, Codable, Sendable {
     public struct InputTokenDetails: Equatable, Hashable, Codable, Sendable {
-        /// Number of text tokens in the input
-        public let textTokens: Int
-        /// Number of audio tokens in the input
-        public let audioTokens: Int
+        /// Number of text tokens in the input (if reported by the server).
+        public let textTokens: Int?
+        /// Number of audio tokens in the input (if reported by the server).
+        public let audioTokens: Int?
 
         private enum CodingKeys: String, CodingKey {
             case textTokens = "text_tokens"
             case audioTokens = "audio_tokens"
         }
+
+        public init(textTokens: Int? = nil, audioTokens: Int? = nil) {
+            self.textTokens = textTokens
+            self.audioTokens = audioTokens
+        }
+
+        public init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            textTokens = try container.decodeIfPresent(
+                Int.self,
+                forKey: .textTokens
+            )
+            audioTokens = try container.decodeIfPresent(
+                Int.self,
+                forKey: .audioTokens
+            )
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encodeIfPresent(textTokens, forKey: .textTokens)
+            try container.encodeIfPresent(audioTokens, forKey: .audioTokens)
+        }
     }
 
-    /// Type of usage measurement (e.g. "tokens")
-    public let type: String
-    /// Total number of tokens used
-    public let totalTokens: Int
-    /// Number of input tokens used
-    public let inputTokens: Int
-    /// Detailed breakdown of input token usage
-    public let inputTokenDetails: InputTokenDetails
-    /// Number of output tokens generated
-    public let outputTokens: Int
+    /// Type of usage measurement (e.g. "tokens"), if present.
+    public let type: String?
+    /// Total number of tokens used.
+    public let totalTokens: Int?
+    /// Number of input tokens used.
+    public let inputTokens: Int?
+    /// Detailed breakdown of input token usage.
+    public let inputTokenDetails: InputTokenDetails?
+    /// Number of output tokens generated.
+    public let outputTokens: Int?
 
     private enum CodingKeys: String, CodingKey {
         case type
@@ -31,6 +54,53 @@ public struct TranscriptionUsage: Equatable, Hashable, Codable, Sendable {
         case inputTokens = "input_tokens"
         case inputTokenDetails = "input_token_details"
         case outputTokens = "output_tokens"
+    }
+
+    public init(
+        type: String? = nil,
+        totalTokens: Int? = nil,
+        inputTokens: Int? = nil,
+        inputTokenDetails: InputTokenDetails? = nil,
+        outputTokens: Int? = nil
+    ) {
+        self.type = type
+        self.totalTokens = totalTokens
+        self.inputTokens = inputTokens
+        self.inputTokenDetails = inputTokenDetails
+        self.outputTokens = outputTokens
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        type = try container.decodeIfPresent(String.self, forKey: .type)
+        totalTokens = try container.decodeIfPresent(
+            Int.self,
+            forKey: .totalTokens
+        )
+        inputTokens = try container.decodeIfPresent(
+            Int.self,
+            forKey: .inputTokens
+        )
+        inputTokenDetails = try container.decodeIfPresent(
+            InputTokenDetails.self,
+            forKey: .inputTokenDetails
+        )
+        outputTokens = try container.decodeIfPresent(
+            Int.self,
+            forKey: .outputTokens
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(type, forKey: .type)
+        try container.encodeIfPresent(totalTokens, forKey: .totalTokens)
+        try container.encodeIfPresent(inputTokens, forKey: .inputTokens)
+        try container.encodeIfPresent(
+            inputTokenDetails,
+            forKey: .inputTokenDetails
+        )
+        try container.encodeIfPresent(outputTokens, forKey: .outputTokens)
     }
 }
 

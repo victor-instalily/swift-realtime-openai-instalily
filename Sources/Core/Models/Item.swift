@@ -1,6 +1,10 @@
 import Foundation
 import MetaCodable
 
+private enum ServerLabelFallback {
+	static let value = "unknown_server"
+}
+
 @Codable @CodedAt("type") public enum Item: Identifiable, Equatable, Hashable, Sendable {
 	public enum Status: String, Equatable, Hashable, Codable, Sendable {
 		case completed, incomplete, inProgress = "in_progress"
@@ -144,7 +148,7 @@ import MetaCodable
 		public var id: String
 
 		/// The label of the MCP server running the tool.
-		public var server: String
+		@CodedAt("server_label") public var server: String
 
 		/// The name of the tool that was run.
 		@CodedAt("name")
@@ -160,7 +164,7 @@ import MetaCodable
 		public var error: Error?
 
 		/// The ID of an associated approval request, if any.
-		public var approvalRequestId: String?
+		@CodedAt("approval_request_id") public var approvalRequestId: String?
 
 		/// Creates a new `MCPToolCall` instance.
 		///
@@ -188,7 +192,7 @@ import MetaCodable
 		public var id: String
 
 		/// The label of the MCP server making the request.
-		public var server: String
+		@CodedAt("server_label") public var server: String
 
 		/// The name of the tool to run.
 		@CodedAt("name")
@@ -217,7 +221,7 @@ import MetaCodable
 		public var id: String
 
 		/// The ID of the approval request being answered.
-		public var approvalRequestId: String
+		@CodedAt("approval_request_id") public var approvalRequestId: String
 
 		/// Whether the request was approved.
 		public var approve: Bool
@@ -308,7 +312,7 @@ import MetaCodable
 		public var id: String
 
 		/// The label of the MCP server.
-		public var server: String
+		@CodedAt("server_label") public var server: String
 
 		/// The tools available on the server.
 		public var tools: [Tool]
@@ -337,8 +341,8 @@ import MetaCodable
 	case functionCallOutput(FunctionCallOutput)
 
 	/// A Realtime item representing an invocation of a tool on an MCP server.
-	@CodedAs("mcp_tool_call")
-	case mcpToolCall(MCPToolCall)
+	@CodedAs("mcp_call")
+	case mcpCall(MCPToolCall)
 
 	/// A Realtime item requesting human approval of a tool invocation.
 	@CodedAs("mcp_approval_request")
@@ -355,7 +359,7 @@ import MetaCodable
 	public var id: String {
 		switch self {
 			case let .message(message): message.id
-			case let .mcpToolCall(mcpToolCall): mcpToolCall.id
+			case let .mcpCall(mcpToolCall): mcpToolCall.id
 			case let .mcpListTools(mcpListTools): mcpListTools.id
 			case let .functionCall(functionCall): functionCall.id
 			case let .functionCallOutput(functionCallOutput): functionCallOutput.id
@@ -489,8 +493,16 @@ extension Item.MCPListTools: Codable {
 	public init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		id = try container.decode(String.self, forKey: .id)
-		server = try container.decode(String.self, forKey: .serverLabel)
-		tools = try container.decode([Tool].self, forKey: .tools)
+
+		if let decodedServer = try container.decodeIfPresent(String.self, forKey: .serverLabel)?.trimmingCharacters(in: .whitespacesAndNewlines),
+		   !decodedServer.isEmpty {
+			server = decodedServer
+		} else {
+			// Keeps the event stream alive when the backend omits the field.
+			server = ServerLabelFallback.value
+		}
+
+		tools = try container.decodeIfPresent([Tool].self, forKey: .tools) ?? []
 	}
 
 	public func encode(to encoder: Encoder) throws {
@@ -515,7 +527,15 @@ extension Item.MCPToolCall: Codable {
 	public init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		id = try container.decode(String.self, forKey: .id)
-		server = try container.decode(String.self, forKey: .serverLabel)
+
+		if let decodedServer = try container.decodeIfPresent(String.self, forKey: .serverLabel)?.trimmingCharacters(in: .whitespacesAndNewlines),
+		   !decodedServer.isEmpty {
+			server = decodedServer
+		} else {
+			// Keeps the event stream alive when the backend omits the field.
+			server = ServerLabelFallback.value
+		}
+
 		tool = try container.decode(String.self, forKey: .name)
 		arguments = try container.decode(String.self, forKey: .arguments)
 		output = try container.decodeIfPresent(String.self, forKey: .output)
@@ -546,7 +566,15 @@ extension Item.MCPApprovalRequest: Codable {
 	public init(from decoder: any Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 		id = try container.decode(String.self, forKey: .id)
-		server = try container.decode(String.self, forKey: .serverLabel)
+
+		if let decodedServer = try container.decodeIfPresent(String.self, forKey: .serverLabel)?.trimmingCharacters(in: .whitespacesAndNewlines),
+		   !decodedServer.isEmpty {
+			server = decodedServer
+		} else {
+			// Keeps the event stream alive when the backend omits the field.
+			server = ServerLabelFallback.value
+		}
+
 		tool = try container.decode(String.self, forKey: .name)
 		arguments = try container.decode(String.self, forKey: .arguments)
 	}
